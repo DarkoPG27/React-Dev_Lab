@@ -8,11 +8,13 @@ class Forms extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            firstName: "",
-            lastName: "",
-            username: "",
-            email: "",
-            password: "",
+            user: {
+                firstName: "",
+                lastName: "",
+                username: "",
+                email: "",
+                password: ""
+            },
             confirmPassword: "",
             validated: false
         };
@@ -20,26 +22,54 @@ class Forms extends Component {
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    handleChange(evt) {
-        this.setState({ [evt.target.name]: evt.target.value });
-    }
+    handleChange(event) {
+        console.log(event.target.name, event.target.value);
+        this.setState((prevState) => ({
+            user: {
+                ...prevState.user,
+                [event.target.name]: event.target.value
+            }
+        }));
+    };
 
     handleSubmit(evt) {
         const form = evt.currentTarget;
         if (form.checkValidity() === false) {
             evt.preventDefault();
             evt.stopPropagation();
-        } this.setState({ validated: true })
-
-        if (this.state.password && this.state.confirmPassword && this.state.password !== this.state.confirmPassword) {
-            alert("Confrim password does not match with password")
         }
-        console.log(this.state)
-    }
+        this.setState({ validated: true })
+
+        if (this.state.user.password !== this.state.confirmPassword) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            alert("Paswords does not matches")
+        }
+        if (form.checkValidity() === true && (this.state.user.password === this.state.confirmPassword)) {
+            fetch("https://jsonblob.com/api/jsonBlob", {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    redirect: "follow"
+                },
+                body: JSON.stringify(this.state.user)
+            })
+                .then(function (response) {
+                    let blobUrl = response.headers.get(
+                        "Location"
+                    );
+                    alert(`Registration successful. Your data: ${blobUrl}`)
+                })
+                .catch(function (error) {
+                    alert("Registration failed.")
+                });
+        }
+    };
 
     render() {
         return (
-            <Form className="registration container" noValidate validated={this.state.validated} onSubmit={this.handleSubmit}  >
+            <Form className="registration container" noValidate validated={this.state.validated} onSubmit={this.handleSubmit}>
                 <Col className=" mb-3">
                     <h1>Registration Form</h1>
                     <Form.Group controlId="validationCustom01">
@@ -48,7 +78,7 @@ class Forms extends Component {
                             type='text'
                             name="firstName"
                             required
-                            value={this.state.firstName}
+                            value={this.state.user.firstName}
                             onChange={this.handleChange}
                             placeholder="First name"
                         /><Form.Control.Feedback type="invalid">
@@ -63,7 +93,7 @@ class Forms extends Component {
                             type='text'
                             name="lastName"
                             required
-                            value={this.state.lastName}
+                            value={this.state.user.lastName}
                             onChange={this.handleChange}
                             placeholder="Last name"
                         /><Form.Control.Feedback type="invalid">
@@ -78,7 +108,7 @@ class Forms extends Component {
                             type='text'
                             name="username"
                             required
-                            value={this.state.username}
+                            value={this.state.user.username}
                             onChange={this.handleChange}
                             placeholder="Username"
                             minLength={6}
@@ -95,7 +125,7 @@ class Forms extends Component {
                             type='email'
                             name="email"
                             required
-                            value={this.state.email}
+                            value={this.state.user.email}
                             onChange={this.handleChange}
                             placeholder="Email"
                         />
@@ -112,7 +142,7 @@ class Forms extends Component {
                             required
                             minLength={8}
                             pattern="(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                            value={this.state.password}
+                            value={this.state.user.password}
                             onChange={this.handleChange}
                         />
                         <Form.Control.Feedback type="invalid">
@@ -132,19 +162,18 @@ class Forms extends Component {
                             minLength={8}
                             pattern="(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}"
                             value={this.state.confirmPassword}
-                            onChange={this.handleChange}
+                            onChange={(e) => this.setState({ confirmPassword: e.target.value })}
                         />
                         <Form.Control.Feedback
                             type="invalid">
                             Please confirm a password.
                         </Form.Control.Feedback>
                     </Form.Group>
-                    <Button type="submit">  Submit!</Button>
+                    <Button type="submit" >  Submit!</Button>
                 </Col>
-            </Form>
+            </Form >
         )
     }
 }
-
 
 export default Forms;
